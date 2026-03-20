@@ -1,0 +1,103 @@
+{
+  "name": "MyLife",
+  "appid": "",
+  "description": "MyLife 任务管理应用",
+  "versionName": "1.0.0",
+  "versionCode": "100",
+  "transformPx": false,
+  "networkTimeout": {
+    "request": 10000,
+    "connectSocket": 10000,
+    "uploadFile": 10000,
+    "downloadFile": 10000
+  },
+  "app-plus": {
+    "usingComponents": true,
+    "nvueStyleCompiler": "uni-app",
+    "compilerVersion": 3,
+    "splashscreen": {
+      "alwaysShowBeforeRender": true,
+      "waiting": true,
+      "autoclose": true,
+      "delay": 0
+    },
+    "modules": {},
+    "distribute": {
+      "android": {
+        "permissions": [
+          "<uses-permission android:name=\"android.permission.INTERNET\"/>",
+          "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
+          "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>"
+        ],
+        "abiFilters": [
+          "armeabi-v7a",
+          "arm64-v8a"
+        ]
+      },
+      "ios": {
+        "dSYMs": false
+      },
+      "sdkConfigs": {}
+    },
+    "screenOrientation": ["portrait-primary"]
+  },
+  "quickapp": {},
+  "mp-weixin": {
+    "appid": "",
+    "setting": {
+      "urlCheck": false,
+      "es6": true,
+      "minified": true,
+      "postcss": true
+    },
+    "usingComponents": true
+  },
+  "mp-alipay": {
+    "usingComponents": true
+  },
+  "mp-baidu": {
+    "usingComponents": true
+  },
+  "mp-toutiao": {
+    "usingComponents": true
+  },
+  "h5": {
+    "title": "MyLife",
+    "router": {
+      "mode": "hash",
+      "base": "./"
+    },
+    "devServer": {
+      "port": 3000,
+      "disableHostCheck": true,
+      "https": false,
+      "hot": true
+    },
+    "optimization": {
+      "treeShaking": {
+        "enable": true
+      }
+    },
+    "manifest": {
+      "icons": {
+        "android": {
+          "hdpi": "static/icons/android_hdpi.png",
+          "xhdpi": "static/icons/android_xhdpi.png",
+          "xxhdpi": "static/icons/android_xxhdpi.png"
+        },
+        "ios": {
+          "ipad": {
+            "appicon": "static/icons/ios_ipad_app.png",
+            "appicon2x": "static/icons/ios_ipad_app@2x.png"
+          },
+          "iphone": {
+            "appicon": "static/icons/ios_iphone_app.png",
+            "appicon2x": "static/icons/ios_iphone_app@2x.png",
+            "appicon3x": "static/icons/ios_iphone_app@3x.png"
+          }
+        }
+      }
+    }
+  },
+  "vueVersion": "3"
+}
