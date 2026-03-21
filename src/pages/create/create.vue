@@ -1,148 +1,203 @@
 <template>
   <view class="create-container">
-    <view class="create-card">
-      <view class="form-title">创建新任务</view>
-
+    <view class="form-section">
+      <!-- 标题 -->
       <view class="form-item">
-        <text class="form-label">任务标题 <text class="required">*</text></text>
-        <input
-          v-model="form.title"
-          class="form-input"
-          type="text"
-          placeholder="请输入任务标题（1-100字符）"
-          maxlength="100"
-        />
-      </view>
-
-      <view class="form-item">
-        <text class="form-label">任务描述</text>
-        <textarea
-          v-model="form.description"
-          class="form-textarea"
-          placeholder="请输入任务描述（可选，0-500字符）"
-          maxlength="500"
-          rows="4"
-        />
-      </view>
-
-      <view class="form-item">
-        <text class="form-label">经验奖励 <text class="required">*</text></text>
-        <view class="reward-input">
-          <button class="reward-btn" @click="decreaseExp">-</button>
-          <input
-            v-model.number="form.expReward"
-            class="reward-value"
-            type="number"
+        <view class="form-item__label">任务标题</view>
+        <view class="form-item__input">
+          <textarea
+            v-model="form.title"
+            placeholder="输入任务标题（1-100字符）"
+            :maxlength="100"
+            class="textarea"
           />
-          <button class="reward-btn" @click="increaseExp">+</button>
         </view>
-        <text class="form-hint">范围：1-10000</text>
       </view>
 
+      <!-- 描述 -->
       <view class="form-item">
-        <text class="form-label">金币奖励 <text class="required">*</text></text>
-        <view class="reward-input">
-          <button class="reward-btn" @click="decreaseCoin">-</button>
-          <input
-            v-model.number="form.coinReward"
-            class="reward-value"
-            type="number"
+        <view class="form-item__label">任务描述</view>
+        <view class="form-item__input">
+          <textarea
+            v-model="form.description"
+            placeholder="输入任务描述（可选，0-500字符）"
+            :maxlength="500"
+            class="textarea"
           />
-          <button class="reward-btn" @click="increaseCoin">+</button>
-        </view>
-        <text class="form-hint">范围：1-10000</text>
-      </view>
-
-      <view class="preview-card">
-        <text class="preview-title">任务预览</text>
-        <view class="preview-item">
-          <text>💎 总经验奖励：</text>
-          <text class="preview-value">{{ form.expReward }}</text>
-        </view>
-        <view class="preview-item">
-          <text>🪙 总金币奖励：</text>
-          <text class="preview-value">{{ form.coinReward }}</text>
         </view>
       </view>
 
-      <button class="submit-btn" :loading="loading" @click="handleSubmit">
-        创建任务
-      </button>
+      <!-- 分类 -->
+      <view class="form-item">
+        <view class="form-item__label">任务分类</view>
+        <view class="form-item__selector">
+          <view
+            v-for="cat in categories"
+            :key="cat.value"
+            class="selector-item"
+            :class="{ active: form.category === cat.value }"
+            :style="{ borderColor: form.category === cat.value ? cat.color : '' }"
+            @click="handleCategorySelect(cat.value)"
+          >
+            <text class="selector-item__icon">{{ cat.icon }}</text>
+            <text class="selector-item__label">{{ cat.label }}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 优先级 -->
+      <view class="form-item">
+        <view class="form-item__label">优先级</view>
+        <view class="form-item__selector">
+          <view
+            v-for="prio in priorities"
+            :key="prio.value"
+            class="selector-item--simple"
+            :class="{ active: form.priority === prio.value }"
+            @click="handlePrioritySelect(prio.value)"
+          >
+            <text>{{ prio.label }}</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 截止日期 -->
+      <view class="form-item">
+        <view class="form-item__label">截止日期</view>
+        <view class="form-item__input" @click="showDatePicker">
+          <view class="input">
+            <text v-if="form.dueDate" class="input__text">{{ form.dueDate }}</text>
+            <text v-else class="input__placeholder">选择截止日期（可选）</text>
+            <text class="input__arrow">›</text>
+          </view>
+        </view>
+      </view>
+
+      <!-- 经验值奖励 -->
+      <view class="form-item">
+        <view class="form-item__label">EXP 奖励</view>
+        <view class="form-item__input">
+          <view class="input">
+            <text class="input__icon">⚡</text>
+            <input
+              v-model.number="form.expReward"
+              type="number"
+              placeholder="1-10000"
+              class="input__field"
+            />
+          </view>
+        </view>
+      </view>
+
+      <!-- 金币奖励 -->
+      <view class="form-item">
+        <view class="form-item__label">金币奖励</view>
+        <view class="form-item__input">
+          <view class="input">
+            <text class="input__icon">💎</text>
+            <input
+              v-model.number="form.coinReward"
+              type="number"
+              placeholder="1-10000"
+              class="input__field"
+            />
+          </view>
+        </view>
+      </view>
+    </view>
+
+    <!-- 创建按钮 -->
+    <view class="submit-section">
+      <button class="submit-btn" @click="handleSubmit">创建任务</button>
     </view>
   </view>
 </template>
 
 <script setup lang="ts">
-import { ref, reactive } from 'vue';
+import { ref } from 'vue';
+import { TaskCreateDTO, TaskCategory, TaskPriority } from '@/types/api';
+import { TASK_CATEGORY_NAMES, TASK_CATEGORY_ICONS, TASK_CATEGORY_COLORS } from '@/types/api';
 import { useTaskStore } from '@/store/task';
-import { ROUTES } from '@/types/common';
 
 const taskStore = useTaskStore();
 
-const form = reactive({
+// 表单数据
+const form = ref<TaskCreateDTO>({
   title: '',
   description: '',
-  expReward: 100,
-  coinReward: 100,
+  category: TaskCategory.GENERAL,
+  priority: TaskPriority.MEDIUM,
+  dueDate: '',
+  expReward: 10,
+  coinReward: 10,
 });
 
-const loading = ref(false);
+// 分类选项
+const categories = [
+  { value: TaskCategory.GENERAL, label: TASK_CATEGORY_NAMES[TaskCategory.GENERAL], icon: TASK_CATEGORY_ICONS[TaskCategory.GENERAL], color: TASK_CATEGORY_COLORS[TaskCategory.GENERAL] },
+  { value: TaskCategory.STUDY, label: TASK_CATEGORY_NAMES[TaskCategory.STUDY], icon: TASK_CATEGORY_ICONS[TaskCategory.STUDY], color: TASK_CATEGORY_COLORS[TaskCategory.STUDY] },
+  { value: TaskCategory.WORK, label: TASK_CATEGORY_NAMES[TaskCategory.WORK], icon: TASK_CATEGORY_ICONS[TaskCategory.WORK], color: TASK_CATEGORY_COLORS[TaskCategory.WORK] },
+  { value: TaskCategory.EXERCISE, label: TASK_CATEGORY_NAMES[TaskCategory.EXERCISE], icon: TASK_CATEGORY_ICONS[TaskCategory.EXERCISE], color: TASK_CATEGORY_COLORS[TaskCategory.EXERCISE] },
+  { value: TaskCategory.LIFE, label: TASK_CATEGORY_NAMES[TaskCategory.LIFE], icon: TASK_CATEGORY_ICONS[TaskCategory.LIFE], color: TASK_CATEGORY_COLORS[TaskCategory.LIFE] },
+  { value: TaskCategory.CREATIVE, label: TASK_CATEGORY_NAMES[TaskCategory.CREATIVE], icon: TASK_CATEGORY_ICONS[TaskCategory.CREATIVE], color: TASK_CATEGORY_COLORS[TaskCategory.CREATIVE] },
+];
 
-function decreaseExp() {
-  if (form.expReward > 1) form.expReward -= 10;
+// 优先级选项
+const priorities = [
+  { value: TaskPriority.HIGH, label: '高' },
+  { value: TaskPriority.MEDIUM, label: '中' },
+  { value: TaskPriority.LOW, label: '低' },
+];
+
+function handleCategorySelect(category: number) {
+  form.value.category = category;
 }
 
-function increaseExp() {
-  if (form.expReward < 10000) form.expReward += 10;
+function handlePrioritySelect(priority: number) {
+  form.value.priority = priority;
 }
 
-function decreaseCoin() {
-  if (form.coinReward > 1) form.coinReward -= 10;
-}
-
-function increaseCoin() {
-  if (form.coinReward < 10000) form.coinReward += 10;
-}
-
-function validate(): boolean {
-  const title = form.title.trim();
-  if (!title) {
-    uni.showToast({ title: '请输入任务标题', icon: 'none' });
-    return false;
-  }
-  if (title.length < 1 || title.length > 100) {
-    uni.showToast({ title: '任务标题需1-100字符', icon: 'none' });
-    return false;
-  }
-  if (form.expReward < 1 || form.expReward > 10000) {
-    uni.showToast({ title: '经验奖励需1-10000', icon: 'none' });
-    return false;
-  }
-  if (form.coinReward < 1 || form.coinReward > 10000) {
-    uni.showToast({ title: '金币奖励需1-10000', icon: 'none' });
-    return false;
-  }
-  return true;
+function showDatePicker() {
+  uni.showModal({
+    title: '提示',
+    content: '日期选择器功能待实现',
+    showCancel: false,
+  });
 }
 
 async function handleSubmit() {
-  if (!validate()) return;
+  // 验证
+  if (!form.value.title.trim()) {
+    uni.showToast({ title: '请输入任务标题', icon: 'none' });
+    return;
+  }
 
-  loading.value = true;
-  const success = await taskStore.createTask(
-    form.title,
-    form.description,
-    form.expReward,
-    form.coinReward
-  );
-  loading.value = false;
+  if (form.value.title.trim().length < 1 || form.value.title.trim().length > 100) {
+    uni.showToast({ title: '标题长度应为1-100字符', icon: 'none' });
+    return;
+  }
 
-  if (success) {
+  if (form.value.expReward < 1 || form.value.expReward > 10000) {
+    uni.showToast({ title: 'EXP奖励应为1-10000', icon: 'none' });
+    return;
+  }
+
+  if (form.value.coinReward < 1 || form.value.coinReward > 10000) {
+    uni.showToast({ title: '金币奖励应为1-10000', icon: 'none' });
+    return;
+  }
+
+  uni.showLoading({ title: '创建中...' });
+
+  try {
+    await taskStore.createTask(form.value);
+    uni.hideLoading();
     uni.showToast({ title: '创建成功', icon: 'success' });
     setTimeout(() => {
       uni.navigateBack();
-    }, 1000);
-  } else {
+    }, 1500);
+  } catch (error) {
+    uni.hideLoading();
     uni.showToast({ title: '创建失败', icon: 'none' });
   }
 }
@@ -152,134 +207,138 @@ async function handleSubmit() {
 .create-container {
   min-height: 100vh;
   background: #f5f5f5;
-  padding: 24rpx;
+  padding: 20rpx;
+  padding-bottom: 120rpx;
 }
 
-.create-card {
+.form-section {
   background: #fff;
   border-radius: 16rpx;
-  padding: 32rpx;
+  padding: 24rpx;
   box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
-}
-
-.form-title {
-  font-size: 36rpx;
-  font-weight: 600;
-  color: #333;
-  margin-bottom: 32rpx;
-  text-align: center;
 }
 
 .form-item {
   margin-bottom: 32rpx;
-}
 
-.form-label {
-  font-size: 28rpx;
-  color: #333;
-  font-weight: 500;
-  display: block;
-  margin-bottom: 12rpx;
+  &:last-child {
+    margin-bottom: 0;
+  }
 
-  .required {
-    color: #f44336;
+  &__label {
+    font-size: 28rpx;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 12rpx;
+  }
+
+  &__input {
+    border-radius: 12rpx;
+    border: 2rpx solid #e9ecef;
+    overflow: hidden;
+
+    .textarea {
+      width: 100%;
+      min-height: 120rpx;
+      padding: 20rpx;
+      font-size: 28rpx;
+      line-height: 1.6;
+    }
+
+    .input {
+      display: flex;
+      align-items: center;
+      padding: 20rpx;
+      font-size: 28rpx;
+
+      &__icon {
+        margin-right: 8rpx;
+      }
+
+      &__field {
+        flex: 1;
+        font-size: 28rpx;
+      }
+
+      &__text {
+        flex: 1;
+        color: #333;
+      }
+
+      &__placeholder {
+        flex: 1;
+        color: #999;
+      }
+
+      &__arrow {
+        color: #999;
+        font-size: 48rpx;
+      }
+    }
+  }
+
+  &__selector {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16rpx;
+
+    .selector-item {
+      display: flex;
+      align-items: center;
+      padding: 12rpx 20rpx;
+      border-radius: 24rpx;
+      border: 2rpx solid #e9ecef;
+      background: #f8f9fa;
+      font-size: 24rpx;
+      color: #666;
+      transition: all 0.3s;
+
+      &.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: transparent;
+        color: #fff;
+      }
+
+      &__icon {
+        margin-right: 4rpx;
+      }
+    }
+
+    .selector-item--simple {
+      padding: 12rpx 32rpx;
+      border-radius: 24rpx;
+      border: 2rpx solid #e9ecef;
+      background: #f8f9fa;
+      font-size: 24rpx;
+      color: #666;
+      transition: all 0.3s;
+
+      &.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-color: transparent;
+        color: #fff;
+      }
+    }
   }
 }
 
-.form-input {
-  width: 100%;
-  height: 88rpx;
-  background: #f5f5f5;
-  border-radius: 12rpx;
-  padding: 0 24rpx;
-  font-size: 30rpx;
-  box-sizing: border-box;
-}
-
-.form-textarea {
-  width: 100%;
-  background: #f5f5f5;
-  border-radius: 12rpx;
-  padding: 20rpx;
-  font-size: 30rpx;
-  box-sizing: border-box;
-}
-
-.form-hint {
-  font-size: 22rpx;
-  color: #999;
-  margin-top: 8rpx;
-  display: block;
-}
-
-.reward-input {
-  display: flex;
-  align-items: center;
-  background: #f5f5f5;
-  border-radius: 12rpx;
-  overflow: hidden;
-}
-
-.reward-btn {
-  width: 88rpx;
-  height: 88rpx;
-  background: #667eea;
-  color: #fff;
-  font-size: 40rpx;
-  border: none;
-  border-radius: 0;
-  line-height: 88rpx;
-  padding: 0;
-
-  &:active {
-    background: #5a6fd6;
-  }
-}
-
-.reward-value {
-  flex: 1;
-  height: 88rpx;
-  text-align: center;
-  font-size: 36rpx;
-  font-weight: 600;
-  color: #333;
-}
-
-.preview-card {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 12rpx;
-  padding: 24rpx;
-  margin: 32rpx 0;
-  color: #fff;
-}
-
-.preview-title {
-  font-size: 28rpx;
-  font-weight: 600;
-  display: block;
-  margin-bottom: 16rpx;
-}
-
-.preview-item {
-  display: flex;
-  justify-content: space-between;
-  font-size: 28rpx;
-  padding: 8rpx 0;
-}
-
-.preview-value {
-  font-weight: 600;
+.submit-section {
+  margin-top: 32rpx;
 }
 
 .submit-btn {
   width: 100%;
-  height: 88rpx;
+  height: 96rpx;
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 48rpx;
   color: #fff;
   font-size: 32rpx;
   font-weight: 600;
-  border-radius: 44rpx;
   border: none;
-  margin-top: 16rpx;
+  box-shadow: 0 8rpx 24rpx rgba(102, 126, 234, 0.4);
+
+  &::after {
+    border: none;
+  }
 }
 </style>

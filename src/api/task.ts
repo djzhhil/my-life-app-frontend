@@ -1,43 +1,44 @@
 /**
- * 任务相关 API
+ * 任务相关 API（更新版）
  */
 
 import { request, get, post } from '@/utils/request';
-import { TaskCreateDTO, Task, TaskStatus } from '@/types/api';
+import { TaskCreateDTO, TaskUpdateDTO, TaskVO } from '@/types/api';
 
 // ==================== 创建任务 ====================
 
-export async function createTask(data: TaskCreateDTO): Promise<Task> {
-  return post<Task>('/task/create', data);
+export async function createTask(data: TaskCreateDTO): Promise<TaskVO> {
+  return post<TaskVO>('/task/create', data);
 }
 
 // ==================== 列出任务 ====================
 
-export async function listTask(): Promise<Task[]> {
-  return get<Task[]>('/task/list');
+export async function listTask(): Promise<TaskVO[]> {
+  return get<TaskVO[]>('/task/list');
+}
+
+// ==================== 更新任务 ====================
+
+export async function updateTask(id: number, data: TaskUpdateDTO): Promise<TaskVO> {
+  return post<TaskVO>(`/task/update/${id}`, data);
+}
+
+// ==================== 删除任务 ====================
+
+export async function deleteTask(id: number): Promise<void> {
+  return post<void>(`/task/delete/${id}`);
 }
 
 // ==================== 完成任务 ====================
 
 export async function completeTask(id: number): Promise<void> {
-  return request({
-    url: `/task/complete/${id}`,
-    method: 'POST',
-  });
-}
-
-// ==================== 筛选任务 ====================
-
-export function filterTasks(tasks: Task[], status?: TaskStatus | 'all'): Task[] {
-  if (!status || status === 'all') {
-    return tasks;
-  }
-  return tasks.filter((task) => task.status === status);
+  return post<void>(`/task/complete/${id}`);
 }
 
 export const taskApi = {
   createTask,
   listTask,
+  updateTask,
+  deleteTask,
   completeTask,
-  filterTasks,
-}
+};
