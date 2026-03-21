@@ -5,60 +5,34 @@
 import { defineStore } from 'pinia';
 import { ref, computed } from 'vue';
 import { taskApi } from '@/api/task';
-import { useUserStore } from './user';
-import { Task, TaskStatus } from '@/types/api';
-import { TaskFilter } from '@/types/common';
+import { TaskCreateDTO, TaskUpdateDTO, TaskVO, TaskStatus } from '@/types/api';
 
 export const useTaskStore = defineStore('task', () => {
   // 状态
-  const tasks = ref<Task[]>([]);
+  const tasks = ref<TaskVO[]>([]);
   const loading = ref(false);
-  const filter = ref<TaskFilter>('all');
 
-  // 计算属性
-  const filteredTasks = computed(() => {
-    if (filter.value === 'all') {
-      return tasks.value;
-    }
-    return tasks.value.filter((task) => task.status === filter.value);
-  });
-
-  const pendingCount = computed(() => {
-    return tasks.value.filter((task) => task.status === TaskStatus.PENDING).length;
-  });
-
-  const doneCount = computed(() => {
-    return tasks.value.filter((task) => task.status === TaskStatus.DONE).length;
-  });
-
-  const totalCount = computed(() => {
-    return tasks.value.length;
-  });
+  // 统计数据
+  const totalCount = computed(() => tasks.value.length);
+  const doneCount = computed(() => tasks.value.filter((t) => t.status === TaskStatus.DONE).length);
+  const pendingCount = computed(() => tasks.value.filter((t) => t.status === TaskStatus.PENDING).length);
 
   // 获取任务列表
   async function fetchTasks(): Promise<void> {
     loading.value = true;
     try {
-      const data = await taskApi.listTask();
-      tasks.value = data || [];
+      tasks.value = await taskApi.listTask();
     } catch (error) {
       console.error('获取任务列表失败:', error);
-      tasks.value = [];
     } finally {
       loading.value = false;
     }
   }
 
   // 创建任务
-  async function createTask(title: string, description: string, expReward: number, coinReward: number): Promise<boolean> {
+  async function createTask(data: TaskCreateDTO): Promise<boolean> {
     try {
-      await taskApi.createTask({
-        title,
-        description,
-        expReward,
-        coinReward,
-      });
-      // 刷新任务列表
+      await taskApi.createTask(data);
       await fetchTasks();
       return true;
     } catch (error) {
@@ -67,16 +41,35 @@ export const useTaskStore = defineStore('task', () => {
     }
   }
 
+  // 更新任务
+  async function updateTask(id: number, data: TaskUpdateDTO): Promise<boolean> {
+    try {
+      await taskApi.updateTask(id, data);
+      await fetchTasks();
+      return true;
+    } catch (error) {
+      console.error('更新任务失败:', error);
+      return false;
+    }
+  }
+
+  // 删除任务
+  async function deleteTask(id: number): Promise<boolean> {
+    try {
+      await taskApi.deleteTask(id);
+      await fetchTasks();
+      return true;
+    } catch (error) {
+      console.error('删除任务失败:', error);
+      return false;
+    }
+  }
+
   // 完成任务
   async function completeTask(id: number): Promise<boolean> {
-    const userStore = useUserStore();
-
     try {
       await taskApi.completeTask(id);
-      // 刷新任务列表
       await fetchTasks();
-      // 刷新用户信息（获取奖励）
-      await userStore.fetchUserInfo();
       return true;
     } catch (error) {
       console.error('完成任务失败:', error);
@@ -84,22 +77,25 @@ export const useTaskStore = defineStore('task', () => {
     }
   }
 
-  // 设置筛选条件
-  function setFilter(newFilter: TaskFilter) {
-    filter.value = newFilter;
+  // 筛选任务（旧版本，为了兼容保留）
+  function filterTasks(tasks: TaskVO[], status?: TaskStatus | 'all'): TaskVO[] {
+    if (!status || status === 'all') {
+      return tasks;
+    }
+    return tasks.filter((task) => task.status === status);
   }
 
   return {
     tasks,
     loading,
-    filter,
-    filteredTasks,
-    pendingCount,
-    doneCount,
     totalCount,
+    doneCount,
+    pendingCount,
     fetchTasks,
     createTask,
+    updateTask,
+    deleteTask,
     completeTask,
-    setFilter,
+    filterTasks,
   };
 });
