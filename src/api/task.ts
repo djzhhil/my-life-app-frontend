@@ -34,3 +34,10 @@ export function filterTasks(tasks: Task[], status?: TaskStatus | 'all'): Task[] 
   }
   return tasks.filter((task) => task.status === status);
 }
+
+export const taskApi = {
+  createTask,
+  listTask,
+  completeTask,
+  filterTasks,
+}

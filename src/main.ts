@@ -1,11 +1,12 @@
 import { createSSRApp } from 'vue';
-import pinia from 'pinia';
+import { createPinia } from 'pinia';
 import App from './App.vue';
 
 export function createApp() {
   const app = createSSRApp(App);
 
-  // 使用 Pinia 状态管理
+  const pinia = createPinia(); // ✅ 正确
+
   app.use(pinia);
 
   return {

@@ -28,3 +28,9 @@ export async function login(data: UserLoginDTO): Promise<TokenVO> {
 export async function getUserInfo(): Promise<User> {
   return get<User>('/user/info');
 }
+
+export const userApi = {
+  register,
+  login,
+  getUserInfo,
+};
