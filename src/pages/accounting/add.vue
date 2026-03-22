@@ -52,7 +52,7 @@
             class="category-icon"
             :style="{ backgroundColor: category.color }"
           >
-            <text>{{ category.icon }}</text>
+            <text>{{ getDisplayIcon(category.icon) }}</text>
           </view>
           <text class="category-name">{{ category.name }}</text>
         </view>
@@ -191,6 +191,17 @@ function handleAmountInput(e: any) {
 // 分类点击
 function handleCategoryClick(category: any) {
   form.value.categoryId = category.id;
+}
+
+// 回退图标：如果后端返回的不是 emoji，使用默认图标
+function getDisplayIcon(icon: string): string {
+  // 检查是否是 emoji（基本是 Unicode 编码）
+  const emojiPattern = /^[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u;
+  if (emojiPattern.test(icon)) {
+    return icon;
+  }
+  // 如果不是 emoji，根据名称返回默认 emoji
+  return '📦';
 }
 
 // 日期选择
