@@ -303,6 +303,30 @@ export const TASK_CATEGORY_NAMES: Record<TaskCategory, string> = {
 };
 
 /**
+ * 任务分类图标映射
+ */
+export const TASK_CATEGORY_ICONS: Record<TaskCategory, string> = {
+  [TaskCategory.GENERAL]: '📌',
+  [TaskCategory.STUDY]: '📚',
+  [TaskCategory.WORK]: '💼',
+  [TaskCategory.EXERCISE]: '🏃',
+  [TaskCategory.LIFE]: '🏠',
+  [TaskCategory.CREATIVE]: '🎨',
+};
+
+/**
+ * 任务分类颜色映射
+ */
+export const TASK_CATEGORY_COLORS: Record<TaskCategory, string> = {
+  [TaskCategory.GENERAL]: '#999999',
+  [TaskCategory.STUDY]: '#51cf66',
+  [TaskCategory.WORK]: '#339af0',
+  [TaskCategory.EXERCISE]: '#fcc419',
+  [TaskCategory.LIFE]: '#ff922b',
+  [TaskCategory.CREATIVE]: '#9775fa',
+};
+
+/**
  * 任务优先级枚举
  */
 export enum TaskPriority {
