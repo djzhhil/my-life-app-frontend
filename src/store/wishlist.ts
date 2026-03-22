@@ -128,13 +128,38 @@ export const useWishlistStore = defineStore('wishlist', () => {
     }
   }
 
+  async function fetchWishlistDetail(wishlistId: number) {
+    loading.value = true
+    try {
+      const data = await api.getWishlistDetail(wishlistId)
+      // 查找并更新或添加到列表
+      const index = wishlists.value.findIndex(w => w.id === wishlistId)
+      if (index !== -1) {
+        wishlists.value[index] = data
+      } else {
+        wishlists.value.push(data)
+      }
+      setCurrentWishlistId(wishlistId)
+      return data
+    } catch (error) {
+      console.error('获取心愿详情失败:', error)
+      throw error
+    } finally {
+      loading.value = false
+    }
+  }
+
   async function makeDeposit(data: DepositDTO) {
     loading.value = true
     try {
       await api.deposit(data)
       const wishlist = wishlists.value.find(w => w.id === data.wishlistId)
       if (wishlist) {
-        wishlist.currentAmount += data.amount
+        // 确保类型是数字
+        const current = typeof wishlist.currentAmount === 'string'
+          ? parseFloat(wishlist.currentAmount)
+          : (wishlist.currentAmount || 0)
+        wishlist.currentAmount = current + data.amount
       }
       // 刷新存钱记录
       if (currentWishlistId.value === data.wishlistId) {
@@ -172,6 +197,7 @@ export const useWishlistStore = defineStore('wishlist', () => {
     lowPriorityWishlists,
     // Actions
     fetchWishlists,
+    fetchWishlistDetail,
     createWishlist,
     updateWishlist,
     deleteWishlist,

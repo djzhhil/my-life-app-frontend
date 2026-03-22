@@ -136,7 +136,7 @@ const handleDeposit = () => {
         try {
           await store.makeDeposit({ wishlistId: wishlistId.value!, amount })
           uni.showToast({ title: '存入成功', icon: 'success' })
-          await loadDetail()
+          await fetchData()
         } catch (error) {
           uni.showToast({ title: '存入失败', icon: 'none' })
         }
