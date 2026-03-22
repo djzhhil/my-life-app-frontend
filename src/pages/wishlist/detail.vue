@@ -283,7 +283,15 @@ onMounted(() => {
     console.log('🟢 设置 wishlistId 为:', wishlistId.value)
     fetchData()
   } else {
-    console.warn('🟢 id 为空，不调用 fetchData')
+    console.warn('🟢 id 为空，跳转回列表页')
+    uni.showToast({
+      title: '请从列表页选择心愿',
+      icon: 'none',
+      duration: 1500
+    })
+    setTimeout(() => {
+      uni.navigateBack()
+    }, 1500)
   }
 
   console.log('🟢🟢🟢 onMounted 结束 🟢🟢🟢')
