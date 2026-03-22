@@ -335,6 +335,8 @@ export enum TaskPriority {
   LOW = 3,     // 低
 }
 
+export const TASK_PRIORITY = TaskPriority;
+
 export const TASK_PRIORITY_NAMES: Record<TaskPriority, string> = {
   [TaskPriority.HIGH]: '高',
   [TaskPriority.MEDIUM]: '中',
@@ -348,6 +350,8 @@ export enum TaskStatus {
   PENDING = 0, // 待完成
   DONE = 1,    // 已完成
 }
+
+export const TASK_STATUS = TaskStatus;
 
 export const TASK_STATUS_NAMES: Record<TaskStatus, string> = {
   [TaskStatus.PENDING]: '待完成',
@@ -408,4 +412,6 @@ export const WISHLIST_STATUS_NAMES: Record<WishlistStatus, string> = {
   [WishlistStatus.IN_PROGRESS]: '进行中',
   [WishlistStatus.COMPLETED]: '已实现',
   [WishlistStatus.ABANDONED]: '已放弃',
+};
+
 };
