@@ -97,7 +97,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onShow } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { onShow } from '@dcloudio/uni-app';
 import { useTransactionStore } from '@/store/transaction';
 import { useUserStore } from '@/store/user';
 import StatCard from '@/components/StatCard.vue';
@@ -109,6 +110,9 @@ const userStore = useUserStore();
 // 统计数据
 const statistics = computed(() => transactionStore.statistics);
 const loading = computed(() => transactionStore.loading);
+
+// 防止重复跳转登录页的标记
+const isNavigatingToLogin = ref(false);
 
 // 格式化金额
 function formatAmount(amount: number): string {
