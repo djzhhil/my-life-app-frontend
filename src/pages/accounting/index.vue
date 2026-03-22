@@ -4,13 +4,13 @@
     <view class="statistics-section">
       <StatCard
         title="收入"
-        :value="statistics?.income || 0"
+        :value="statistics?.totalIncome || 0"
         icon="↓"
         color="#51cf66"
       />
       <StatCard
         title="支出"
-        :value="statistics?.expense || 0"
+        :value="statistics?.totalExpense || 0"
         icon="↑"
         color="#ff6b6b"
       />
@@ -85,7 +85,7 @@
 
       <!-- 加载中 -->
       <view v-else class="loading-state">
-        <uni-tag text="加载中..." />
+        <text>加载中...</text>
       </view>
     </view>
 
@@ -97,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, onShow } from 'vue';
 import { useTransactionStore } from '@/store/transaction';
 import StatCard from '@/components/StatCard.vue';
 import type { TransactionVO } from '@/types/api';
@@ -213,11 +213,20 @@ function handleAdd() {
 
 // 加载数据
 async function loadData() {
-  await transactionStore.fetchTransactions();
-  await transactionStore.fetchStatistics();
+  try {
+    await transactionStore.fetchTransactions();
+    await transactionStore.fetchStatistics();
+  } catch (error) {
+    console.error('加载数据失败:', error);
+  }
 }
 
 onMounted(() => {
+  loadData();
+});
+
+// 页面显示时重新加载数据（从添加页面返回时）
+onShow(() => {
   loadData();
 });
 </script>
@@ -362,6 +371,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   padding: 120rpx 0;
+  color: rgba(255, 255, 255, 0.6);
 }
 
 // FAB 按钮

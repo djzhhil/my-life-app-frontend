@@ -211,16 +211,26 @@ export interface WishlistDeposit {
 }
 
 /**
- * 交易统计 VO
+ * 交易统计 VO（修复：与后端字段名对齐）
  */
 export interface TransactionStatisticsVO {
-  income: number; // 总收入
-  expense: number; // 总支出
+  totalIncome: number; // 总收入
+  totalExpense: number; // 总支出
   balance: number; // 余额
-  count: number; // 交易笔数
-  categoryStats: CategoryStatisticVO[]; // 分类统计
-  dailyStats: DailyStatisticVO[]; // 日期统计
+  transactionCount: number; // 交易笔数
+  categoryStatistics: CategoryStatisticVO[]; // 分类统计
+  dailyStatistics: DailyStatisticVO[]; // 日期统计
 }
+
+// 兼容旧版本字段名（可选，使用 getter）
+export const getStatisticsFromVO = (vo: TransactionStatisticsVO) => ({
+  income: vo.totalIncome,
+  expense: vo.totalExpense,
+  balance: vo.balance,
+  count: vo.transactionCount,
+  categoryStats: vo.categoryStatistics,
+  dailyStats: vo.dailyStatistics,
+});
 
 /**
  * 分类统计
