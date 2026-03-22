@@ -231,18 +231,18 @@ const completionRate = computed(() => {
       background: rgba(255, 255, 255, 0.15);
       padding: 16rpx 8rpx;
 
-      &__title {
+      .stat-card__title {
         color: rgba(255, 255, 255, 0.9);
         font-size: 20rpx;
       }
 
-      &__value {
-        &__number {
+      .stat-card__value {
+        .stat-card__value__number {
           color: #fff;
           font-size: 36rpx;
         }
 
-        &__unit {
+        .stat-card__value__unit {
           color: rgba(255, 255, 255, 0.9);
         }
       }

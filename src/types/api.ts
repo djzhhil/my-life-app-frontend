@@ -1,5 +1,5 @@
 /**
- * API 类型定义（更新版）
+ * API 类型定义（修复版）
  * 基于后端接口文档 - Phase 1-6 完整版
  */
 
@@ -69,7 +69,7 @@ export interface CategoryCreateDTO {
 }
 
 /**
- * 创建交易记录请求 DTO
+ * 创建交易记录请求 DTO（修复版）
  */
 export interface TransactionCreateDTO {
   type: number; // 1=收入, 2=支出
@@ -158,7 +158,7 @@ export interface CategoryVO {
 }
 
 /**
- * 交易记录响应 VO
+ * 交易记录响应 VO（修复版）
  */
 export interface TransactionVO {
   id: number;
@@ -171,7 +171,7 @@ export interface TransactionVO {
   categoryColor: string;
   description: string;
   account: string;
-  date: string;
+  date: string; // 修复：从 transactionDate 改为 date
   createdAt: string;
 }
 

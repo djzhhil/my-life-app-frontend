@@ -26,6 +26,38 @@
       }
     },
     {
+      "path": "pages/accounting/index",
+      "style": {
+        "navigationBarTitleText": "记账",
+        "enablePullDownRefresh": true
+      }
+    },
+    {
+      "path": "pages/accounting/add",
+      "style": {
+        "navigationBarTitleText": "添加记账"
+      }
+    },
+    {
+      "path": "pages/wishlist/index",
+      "style": {
+        "navigationBarTitleText": "心愿单",
+        "enablePullDownRefresh": true
+      }
+    },
+    {
+      "path": "pages/wishlist/detail",
+      "style": {
+        "navigationBarTitleText": "心愿详情"
+      }
+    },
+    {
+      "path": "pages/wishlist/add",
+      "style": {
+        "navigationBarTitleText": "添加心愿"
+      }
+    },
+    {
       "path": "pages/mine/mine",
       "style": {
         "navigationBarTitleText": "我的"
