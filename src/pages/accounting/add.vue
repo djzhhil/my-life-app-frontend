@@ -34,7 +34,14 @@
     <!-- 分类选择 -->
     <view class="section">
       <view class="section-title">选择分类</view>
-      <view class="category-grid">
+      <view v-if="categoryStore.loading" class="loading">
+        <text>加载分类中...</text>
+      </view>
+      <view v-else-if="currentCategories.length === 0" class="empty-categories">
+        <text class="empty-icon">📦</text>
+        <text class="empty-text">暂无该类型分类</text>
+      </view>
+      <view v-else class="category-grid">
         <view
           v-for="category in currentCategories"
           :key="category.id"
@@ -106,116 +113,13 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue';
 import { useTransactionStore } from '@/store/transaction';
-import { TransactionType } from '@/types/api';
-
-interface Category {
-  id: number;
-  name: string;
-  icon: string;
-  color: string;
-  type: number;
-}
-
-interface AccountType {
-  value: string;
-  name: string;
-  icon: string;
-}
+import { useCategoryStore } from '@/store/category';
 
 const transactionStore = useTransactionStore();
-
-// 默认分类数据
-const defaultCategories: Category[] = [
-  // 收入分类
-  {
-    id: 1,
-    name: '工资',
-    icon: '💰',
-    color: '#51cf66',
-    type: 1,
-  },
-  {
-    id: 2,
-    name: '奖金',
-    icon: '🎁',
-    color: '#51cf66',
-    type: 1,
-  },
-  {
-    id: 3,
-    name: '投资',
-    icon: '📈',
-    color: '#51cf66',
-    type: 1,
-  },
-  {
-    id: 4,
-    name: '其他',
-    icon: '📦',
-    color: '#51cf66',
-    type: 1,
-  },
-  // 支出分类
-  {
-    id: 5,
-    name: '餐饮',
-    icon: '🍜',
-    color: '#ff6b6b',
-    type: 2,
-  },
-  {
-    id: 6,
-    name: '交通',
-    icon: '🚗',
-    color: '#ff6b6b',
-    type: 2,
-  },
-  {
-    id: 7,
-    name: '购物',
-    icon: '🛍️',
-    color: '#ff6b6b',
-    type: 2,
-  },
-  {
-    id: 8,
-    name: '娱乐',
-    icon: '🎮',
-    color: '#ff6b6b',
-    type: 2,
-  },
-  {
-    id: 9,
-    name: '医疗',
-    icon: '💊',
-    color: '#ff6b6b',
-    type: 2,
-  },
-  {
-    id: 10,
-    name: '教育',
-    icon: '📚',
-    color: '#ff6b6b',
-    type: 2,
-  },
-  {
-    id: 11,
-    name: '生活',
-    icon: '🏠',
-    color: '#ff6b6b',
-    type: 2,
-  },
-  {
-    id: 12,
-    name: '其他',
-    icon: '📦',
-    color: '#ff6b6b',
-    type: 2,
-  },
-];
+const categoryStore = useCategoryStore();
 
 // 账户类型
-const accountTypes: AccountType[] = [
+const accountTypes = [
   { value: '支付宝', name: '支付宝', icon: '💳' },
   { value: '微信', name: '微信', icon: '💬' },
   { value: '现金', name: '现金', icon: '💵' },
@@ -226,7 +130,7 @@ const accountTypes: AccountType[] = [
 const form = ref({
   type: 2, // 1=收入, 2=支出
   amount: '',
-  categoryId: 5, // 默认选中第一个支出分类
+  categoryId: null as number | null,
   description: '',
   account: '支付宝',
   date: '',
@@ -236,9 +140,9 @@ const form = ref({
 const isEditing = ref(false);
 const editId = ref<number | null>(null);
 
-// 当前显示的分类
+// 当前显示的分类（从后端获取的）
 const currentCategories = computed(() => {
-  return defaultCategories.filter(cat => cat.type === form.value.type);
+  return categoryStore.getCategoriesByType(form.value.type);
 });
 
 // 格式化日期
@@ -262,6 +166,8 @@ function handleTypeChange(type: number) {
   const firstCategory = currentCategories.value[0];
   if (firstCategory) {
     form.value.categoryId = firstCategory.id;
+  } else {
+    form.value.categoryId = null;
   }
 }
 
@@ -283,7 +189,7 @@ function handleAmountInput(e: any) {
 }
 
 // 分类点击
-function handleCategoryClick(category: Category) {
+function handleCategoryClick(category: any) {
   form.value.categoryId = category.id;
 }
 
@@ -336,7 +242,7 @@ async function handleSave() {
     let success = false;
 
     if (isEditing.value && editId.value) {
-      // 更新交易（暂时不支持，因为 store 的 updateTransaction 需要完整数据）
+      // 更新交易（暂时不支持）
       uni.hideLoading();
       uni.showToast({
         title: '编辑功能暂未实现',
@@ -376,13 +282,22 @@ async function handleSave() {
 }
 
 // 初始化
-onMounted(() => {
+onMounted(async () => {
   // 设置默认日期为今天
   const today = new Date();
   const year = today.getFullYear();
   const month = String(today.getMonth() + 1).padStart(2, '0');
   const day = String(today.getDate()).padStart(2, '0');
   form.value.date = `${year}-${month}-${day}`;
+
+  // 获取分类列表
+  await categoryStore.fetchCategories();
+
+  // 设置默认分类（支出类型的第一个）
+  const firstExpense = categoryStore.expenseCategories[0];
+  if (firstExpense) {
+    form.value.categoryId = firstExpense.id;
+  }
 
   // 检查是否为编辑模式
   const pages = getCurrentPages();
@@ -392,7 +307,6 @@ onMounted(() => {
   if (options.id) {
     isEditing.value = true;
     editId.value = parseInt(options.id);
-    // TODO: 加载交易数据进行编辑
     uni.showToast({
       title: '编辑功能暂未实现',
       icon: 'none',
@@ -491,6 +405,34 @@ onMounted(() => {
   color: #333;
   font-weight: 600;
   margin-bottom: 24rpx;
+}
+
+// 加载和空状态
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 48rpx;
+  color: #999;
+  font-size: 28rpx;
+}
+
+.empty-categories {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 48rpx 0;
+
+  .empty-icon {
+    font-size: 96rpx;
+    margin-bottom: 16rpx;
+    opacity: 0.5;
+  }
+
+  .empty-text {
+    font-size: 28rpx;
+    color: #999;
+  }
 }
 
 // 分类网格

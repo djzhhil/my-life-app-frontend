@@ -3,24 +3,40 @@
  */
 
 import { defineStore } from 'pinia';
-import { ref } from 'vue';
-import * as categoryApi from '@/api/category';
-import { CategoryVO, CategoryType } from '@/types/api';
+import { ref, computed } from 'vue';
+import { categoryApi } from '@/api/category';
 
-// TODO: 创建 src/api/category.ts
-// 需要先创建 API 文件，然后才能完成这个 store
+export interface Category {
+  id: number;
+  name: string;
+  type: number;  // 1=收入, 2=支出
+  icon: string;
+  color: string;
+}
 
 export const useCategoryStore = defineStore('category', () => {
   // 状态
-  const categories = ref<CategoryVO[]>([]);
+  const categories = ref<Category[]>([]);
   const loading = ref(false);
+
+  // 收入分类
+  const incomeCategories = computed(() => {
+    return categories.value.filter(cat => cat.type === 1);
+  });
+
+  // 支出分类
+  const expenseCategories = computed(() => {
+    return categories.value.filter(cat => cat.type === 2);
+  });
 
   // 获取分类列表
   async function fetchCategories(): Promise<void> {
     loading.value = true;
     try {
-      // TODO: 调用分类 API
-      // categories.value = await categoryApi.listCategories();
+      // 获取所有分类
+      const incomeList = await categoryApi.listCategories(1);
+      const expenseList = await categoryApi.listCategories(2);
+      categories.value = [...incomeList, ...expenseList];
     } catch (error) {
       console.error('获取分类列表失败:', error);
     } finally {
@@ -28,11 +44,20 @@ export const useCategoryStore = defineStore('category', () => {
     }
   }
 
+  // 根据类型获取分类
+  function getCategoriesByType(type: number): Category[] {
+    return categories.value.filter(cat => cat.type === type);
+  }
+
+  // 根据ID获取分类
+  function getCategoryById(id: number): Category | undefined {
+    return categories.value.find(cat => cat.id === id);
+  }
+
   // 创建分类
   async function createCategory(data: any): Promise<boolean> {
     try {
-      // TODO: 调用创建分类 API
-      // await categoryApi.createCategory(data);
+      await categoryApi.createCategory(data);
       await fetchCategories();
       return true;
     } catch (error) {
@@ -44,8 +69,7 @@ export const useCategoryStore = defineStore('category', () => {
   // 更新分类
   async function updateCategory(id: number, data: any): Promise<boolean> {
     try {
-      // TODO: 调用更新分类 API
-      // await categoryApi.updateCategory(id, data);
+      await categoryApi.updateCategory(id, data);
       await fetchCategories();
       return true;
     } catch (error) {
@@ -57,8 +81,7 @@ export const useCategoryStore = defineStore('category', () => {
   // 删除分类
   async function deleteCategory(id: number): Promise<boolean> {
     try {
-      // TODO: 调用删除分类 API
-      // await categoryApi.deleteCategory(id);
+      await categoryApi.deleteCategory(id);
       await fetchCategories();
       return true;
     } catch (error) {
@@ -67,18 +90,16 @@ export const useCategoryStore = defineStore('category', () => {
     }
   }
 
-  // 按类型筛选分类
-  function getCategoriesByType(type: CategoryType): CategoryVO[] {
-    return categories.value.filter(cat => cat.type === type);
-  }
-
   return {
     categories,
     loading,
+    incomeCategories,
+    expenseCategories,
     fetchCategories,
+    getCategoriesByType,
+    getCategoryById,
     createCategory,
     updateCategory,
     deleteCategory,
-    getCategoriesByType,
   };
 });
