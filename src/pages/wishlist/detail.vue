@@ -122,15 +122,32 @@ const fetchData = async () => {
 }
 
 const handleDeposit = () => {
+  console.log('🟢🟢🟢 handleDeposit 被调用！！！🟢🟢🟢')
+  console.log('🟢 wishlistId:', wishlistId.value)
+  console.log('🟢 当前时间:', new Date().toISOString())
+
+  // 最简单的测试：先不调用 showModal，直接弹一个 toast
+  uni.showToast({ title: '按钮点击了！', icon: 'none' })
+
   // 使用 uni.showModal 配合临时输入框的方式
   // 因为 editable 属性在某些平台可能不支持
   let inputValue = ''
+
+  console.log('🟢 准备调用 uni.showModal')
 
   uni.showModal({
     title: '存入金币',
     editable: true,
     placeholderText: '请输入存入金额',
-    success: async (res) => {
+    success: (res) => {
+      console.log('🟢🟢🟢 uni.showModal success callback 被调用！！！🟢🟢🟢')
+      console.log('🟢 res:', res)
+      console.log('🟢 res.confirm:', res.confirm)
+      console.log('🟢 res.content:', res.content)
+      console.log('🟢 res.cancel:', res.cancel)
+
+      uni.showToast({ title: 'Modal success 被调用', icon: 'none' })
+
       if (res.confirm) {
         // 某些平台下 res.content 可能不正确，尝试多种方式获取输入值
         const content = res.content || res.tap?.content || res.edit?.content || ''
@@ -170,11 +187,16 @@ const handleDeposit = () => {
           console.error('错误信息:', error?.message || '未知错误')
           uni.showToast({ title: '存入失败: ' + (error?.message || '未知错误'), icon: 'none' })
         }
+      } else {
+        console.log('🟢 用户点击了取消')
       }
     },
     fail: (err) => {
       console.error('💰 Modal 调用失败:', err)
       uni.showToast({ title: '弹窗失败', icon: 'none' })
+    },
+    complete: () => {
+      console.log('🟢 uni.showModal complete callback 被调用')
     }
   })
 }
