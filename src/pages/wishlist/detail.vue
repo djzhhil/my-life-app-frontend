@@ -73,13 +73,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useWishlistStore } from '@/store/wishlist'
 import DepositRecord from '@/components/DepositRecord.vue'
 
 const store = useWishlistStore()
 const wishlistId = ref<number | null>(null)
 const loading = ref(false)
+
+// 监控 loading 状态变化
+watch(loading, (newVal, oldVal) => {
+  console.log(`🟠🟠🟠 loading 状态变化: ${oldVal} → ${newVal} 🟠🟠🟠`)
+})
+
+// 每5秒打印一次 loading 状态
+setInterval(() => {
+  console.log(`⏰ [${new Date().toISOString()}] 当前 loading 状态: ${loading.value}`)
+}, 5000)
 
 const wishlist = computed(() => store.currentWishlist)
 const deposits = computed(() => store.deposits)
@@ -109,15 +119,34 @@ const formatDate = (dateStr: string) => {
 }
 
 const fetchData = async () => {
-  if (!wishlistId.value) return
+  console.log('🟡🟡🟡 fetchData 开始 🟡🟡🟡')
+  console.log('🟡 当前 loading:', loading.value)
+  console.log('🟡 wishlistId.value:', wishlistId.value)
+
+  if (!wishlistId.value) {
+    console.warn('🟡 wishlistId 为空，fetchData 跳过')
+    return
+  }
+
   loading.value = true
+  console.log('🟡 loading 设为 true')
+
   try {
+    console.log('🟡 准备调用 fetchWishlistDetail')
     await store.fetchWishlistDetail(wishlistId.value)
+    console.log('🟡 fetchWishlistDetail 完成')
+
+    console.log('🟡 准备调用 fetchDeposits')
     await store.fetchDeposits(wishlistId.value)
+    console.log('🟡 fetchDeposits 完成')
   } catch (error) {
-    console.error('获取详情失败:', error)
+    console.error('🟡❌❌ fetchData 失败 ❌❌🟡')
+    console.error('错误:', error)
+    console.error('错误信息:', error?.message)
   } finally {
     loading.value = false
+    console.log('🟡 loading 设为 false')
+    console.log('🟡🟡🟡 fetchData 结束 🟡🟡🟡')
   }
 }
 
@@ -238,13 +267,26 @@ const handleAbandon = () => {
 }
 
 onMounted(() => {
+  console.log('🟢🟢🟢 onMounted 被调用 🟢🟢🟢')
+  console.log('🟢 当前时间:', new Date().toISOString())
+
   const pages = getCurrentPages()
   const currentPage = pages[pages.length - 1]
   const id = currentPage.options?.id
+
+  console.log('🟢 获取到的 id:', id)
+  console.log('🟢 当前 wishlistId:', wishlistId.value)
+  console.log('🟢 当前 loading:', loading.value)
+
   if (id) {
     wishlistId.value = parseInt(id)
+    console.log('🟢 设置 wishlistId 为:', wishlistId.value)
     fetchData()
+  } else {
+    console.warn('🟢 id 为空，不调用 fetchData')
   }
+
+  console.log('🟢🟢🟢 onMounted 结束 🟢🟢🟢')
 })
 </script>
 
@@ -421,7 +463,7 @@ onMounted(() => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(255, 0, 0, 0.7);  /* 🔴 调试用：红色背景，如果遮挡按钮就能看到 */
   display: flex;
   align-items: center;
   justify-content: center;
