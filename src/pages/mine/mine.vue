@@ -125,10 +125,10 @@ onMounted(() => {
 function goToPage(page: string) {
   switch (page) {
     case 'accounting':
-      uni.showToast({ title: '记账功能开发中', icon: 'none' });
+      uni.navigateTo({ url: '/pages/accounting/index' });
       break;
     case 'wishlist':
-      uni.showToast({ title: '心愿单功能开发中', icon: 'none' });
+      uni.navigateTo({ url: '/pages/wishlist/index' });
       break;
     case 'achievements':
       uni.showToast({ title: '成就功能开发中', icon: 'none' });

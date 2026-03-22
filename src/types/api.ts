@@ -414,4 +414,3 @@ export const WISHLIST_STATUS_NAMES: Record<WishlistStatus, string> = {
   [WishlistStatus.ABANDONED]: '已放弃',
 };
 
-};
