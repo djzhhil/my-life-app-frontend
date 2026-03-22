@@ -24,7 +24,6 @@
           :key="item.id"
           :item="item"
           @click="goToDetail"
-          @deposit="handleDeposit"
         />
       </view>
       
@@ -94,30 +93,6 @@ const goToDetail = (item: Wishlist) => {
 const goToAdd = () => {
   uni.navigateTo({
     url: '/pages/wishlist/add'
-  })
-}
-
-const handleDeposit = (item: Wishlist) => {
-  // 弹出存钱弹窗
-  uni.showModal({
-    title: '存入金币',
-    editable: true,
-    placeholderText: '请输入存入金额',
-    success: async (res) => {
-      if (res.confirm && res.content) {
-        const amount = parseFloat(res.content)
-        if (isNaN(amount) || amount <= 0) {
-          uni.showToast({ title: '请输入有效金额', icon: 'none' })
-          return
-        }
-        try {
-          await store.deposit({ wishlistId: item.id, amount })
-          uni.showToast({ title: '存入成功', icon: 'success' })
-        } catch (error) {
-          uni.showToast({ title: '存入失败', icon: 'none' })
-        }
-      }
-    }
   })
 }
 

@@ -35,12 +35,6 @@
         <text>目标日期：{{ formatDate(item.targetDate) }}</text>
       </view>
     </view>
-    
-    <view class="card-footer">
-      <button class="deposit-btn" @click.stop="handleDeposit">
-        存入金币
-      </button>
-    </view>
   </view>
 </template>
 
@@ -55,7 +49,6 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: 'click', item: Wishlist): void
-  (e: 'deposit', item: Wishlist): void
 }>()
 
 const progress = computed(() => {
@@ -80,10 +73,6 @@ const formatDate = (dateStr: string) => {
 
 const handleClick = () => {
   emit('click', props.item)
-}
-
-const handleDeposit = () => {
-  emit('deposit', props.item)
 }
 </script>
 
@@ -184,26 +173,6 @@ const handleDeposit = () => {
     .target-date {
       font-size: 24rpx;
       color: rgba(255, 255, 255, 0.7);
-    }
-  }
-  
-  .card-footer {
-    margin-top: 20rpx;
-    
-    .deposit-btn {
-      width: 100%;
-      height: 72rpx;
-      line-height: 72rpx;
-      text-align: center;
-      background: rgba(255, 255, 255, 0.2);
-      border: 2rpx solid rgba(255, 255, 255, 0.3);
-      border-radius: 36rpx;
-      color: #fff;
-      font-size: 28rpx;
-      
-      &:active {
-        background: rgba(255, 255, 255, 0.3);
-      }
     }
   }
 }
