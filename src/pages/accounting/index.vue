@@ -162,7 +162,11 @@ const groupedTransactions = computed(() => {
   const groups: Record<string, TransactionGroup> = {};
 
   transactions.forEach((transaction) => {
-    const date = transaction.date.substring(0, 10);
+    // 确保 date 是字符串类型
+    const dateStr = typeof transaction.date === 'string' 
+      ? transaction.date 
+      : String(transaction.date);
+    const date = dateStr.substring(0, 10);
 
     if (!groups[date]) {
       groups[date] = {
