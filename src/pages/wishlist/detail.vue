@@ -73,7 +73,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, watch } from 'vue'
+import { ref, computed } from 'vue'
 import { onLoad } from '@dcloudio/uni-app'
 import { useWishlistStore } from '@/store/wishlist'
 import DepositRecord from '@/components/DepositRecord.vue'
@@ -81,16 +81,6 @@ import DepositRecord from '@/components/DepositRecord.vue'
 const store = useWishlistStore()
 const wishlistId = ref<number | null>(null)
 const loading = ref(false)
-
-// 监控 loading 状态变化
-watch(loading, (newVal, oldVal) => {
-  console.log(`🟠🟠🟠 loading 状态变化: ${oldVal} → ${newVal} 🟠🟠🟠`)
-})
-
-// 每5秒打印一次 loading 状态
-setInterval(() => {
-  console.log(`⏰ [${new Date().toISOString()}] 当前 loading 状态: ${loading.value}`)
-}, 5000)
 
 const wishlist = computed(() => store.currentWishlist)
 const deposits = computed(() => store.deposits)
@@ -120,113 +110,45 @@ const formatDate = (dateStr: string) => {
 }
 
 const fetchData = async () => {
-  console.log('🟡🟡🟡 fetchData 开始 🟡🟡🟡')
-  console.log('🟡 当前 loading:', loading.value)
-  console.log('🟡 wishlistId.value:', wishlistId.value)
-
-  if (!wishlistId.value) {
-    console.warn('🟡 wishlistId 为空，fetchData 跳过')
-    return
-  }
-
+  if (!wishlistId.value) return
   loading.value = true
-  console.log('🟡 loading 设为 true')
-
   try {
-    console.log('🟡 准备调用 fetchWishlistDetail')
     await store.fetchWishlistDetail(wishlistId.value)
-    console.log('🟡 fetchWishlistDetail 完成')
-
-    console.log('🟡 准备调用 fetchDeposits')
     await store.fetchDeposits(wishlistId.value)
-    console.log('🟡 fetchDeposits 完成')
   } catch (error) {
-    console.error('🟡❌❌ fetchData 失败 ❌❌🟡')
-    console.error('错误:', error)
-    console.error('错误信息:', error?.message)
+    console.error('获取详情失败:', error)
   } finally {
     loading.value = false
-    console.log('🟡 loading 设为 false')
-    console.log('🟡🟡🟡 fetchData 结束 🟡🟡🟡')
   }
 }
 
 const handleDeposit = () => {
-  console.log('🟢🟢🟢 handleDeposit 被调用！！！🟢🟢🟢')
-  console.log('🟢 wishlistId:', wishlistId.value)
-  console.log('🟢 当前时间:', new Date().toISOString())
-
-  // 最简单的测试：先不调用 showModal，直接弹一个 toast
-  uni.showToast({ title: '按钮点击了！', icon: 'none' })
-
-  // 使用 uni.showModal 配合临时输入框的方式
-  // 因为 editable 属性在某些平台可能不支持
-  let inputValue = ''
-
-  console.log('🟢 准备调用 uni.showModal')
-
   uni.showModal({
     title: '存入金币',
     editable: true,
     placeholderText: '请输入存入金额',
     success: async (res) => {
-      console.log('🟢🟢🟢 uni.showModal success callback 被调用！！！🟢🟢🟢')
-      console.log('🟢 res:', res)
-      console.log('🟢 res.confirm:', res.confirm)
-      console.log('🟢 res.content:', res.content)
-      console.log('🟢 res.cancel:', res.cancel)
-
-      uni.showToast({ title: 'Modal success 被调用', icon: 'none' })
-
-      if (res.confirm) {
-        // 某些平台下 res.content 可能不正确，尝试多种方式获取输入值
-        const content = res.content || res.tap?.content || res.edit?.content || ''
-
-        console.log('💰 用户输入:', content)
-        console.log('💰 完整 res:', res)
-
-        const amount = parseFloat(content)
-
-        console.log('💰 解析后的金额:', amount)
-
+      if (res.confirm && res.content) {
+        const amount = parseFloat(res.content)
         if (isNaN(amount) || amount <= 0) {
-          console.warn('💰 金额无效:', amount,isNaN(amount), amount <= 0)
           uni.showToast({ title: '请输入有效金额', icon: 'none' })
           return
         }
 
         if (!wishlistId.value) {
-          console.error('💰 wishlistId 为空')
           uni.showToast({ title: '数据异常', icon: 'none' })
           return
         }
 
-        console.log('💰 准备调用 store.makeDeposit:', { wishlistId: wishlistId.value, amount })
-
         try {
           await store.makeDeposit({ wishlistId: wishlistId.value, amount })
-
-          console.log('💰 makeDeposit 执行成功')
-
           uni.showToast({ title: '存入成功', icon: 'success' })
-
           await fetchData()
         } catch (error) {
-          console.error('💰💰💰 存入失败 💰💰💰')
-          console.error('错误:', error)
-          console.error('错误信息:', error?.message || '未知错误')
+          console.error('存入失败:', error)
           uni.showToast({ title: '存入失败: ' + (error?.message || '未知错误'), icon: 'none' })
         }
-      } else {
-        console.log('🟢 用户点击了取消')
       }
-    },
-    fail: (err) => {
-      console.error('💰 Modal 调用失败:', err)
-      uni.showToast({ title: '弹窗失败', icon: 'none' })
-    },
-    complete: () => {
-      console.log('🟢 uni.showModal complete callback 被调用')
     }
   })
 }
@@ -242,6 +164,7 @@ const handleComplete = async () => {
           uni.showToast({ title: '已完成', icon: 'success' })
           setTimeout(() => uni.navigateBack(), 1500)
         } catch (error) {
+          console.error('完成失败:', error)
           uni.showToast({ title: '操作失败', icon: 'none' })
         }
       }
@@ -260,6 +183,7 @@ const handleAbandon = () => {
           uni.showToast({ title: '已放弃', icon: 'success' })
           setTimeout(() => uni.navigateBack(), 1500)
         } catch (error) {
+          console.error('放弃失败:', error)
           uni.showToast({ title: '操作失败', icon: 'none' })
         }
       }
@@ -268,22 +192,12 @@ const handleAbandon = () => {
 }
 
 onLoad((options) => {
-  console.log('🟢🟢🟢 onLoad 被调用 🟢🟢🟢')
-  console.log('🟢 options:', options)
-  console.log('🟢 当前时间:', new Date().toISOString())
-
   const id = options.id
-
-  console.log('🟢 获取到的 id:', id)
-  console.log('🟢 当前 wishlistId:', wishlistId.value)
-  console.log('🟢 当前 loading:', loading.value)
-
+  
   if (id) {
     wishlistId.value = parseInt(id)
-    console.log('🟢 设置 wishlistId 为:', wishlistId.value)
     fetchData()
   } else {
-    console.warn('🟢 id 为空，跳转回列表页')
     uni.showToast({
       title: '请从列表页选择心愿',
       icon: 'none',
@@ -293,8 +207,6 @@ onLoad((options) => {
       uni.navigateBack()
     }, 1500)
   }
-
-  console.log('🟢🟢🟢 onLoad 结束 🟢🟢🟢')
 })
 </script>
 
@@ -471,7 +383,7 @@ onLoad((options) => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(255, 0, 0, 0.7);  /* 🔴 调试用：红色背景，如果遮挡按钮就能看到 */
+  background: rgba(0, 0, 0, 0.3);
   display: flex;
   align-items: center;
   justify-content: center;
