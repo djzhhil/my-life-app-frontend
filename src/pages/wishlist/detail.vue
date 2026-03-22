@@ -168,7 +168,7 @@ const handleDeposit = () => {
     title: '存入金币',
     editable: true,
     placeholderText: '请输入存入金额',
-    success: (res) => {
+    success: async (res) => {
       console.log('🟢🟢🟢 uni.showModal success callback 被调用！！！🟢🟢🟢')
       console.log('🟢 res:', res)
       console.log('🟢 res.confirm:', res.confirm)
