@@ -74,6 +74,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
+import { onLoad } from '@dcloudio/uni-app'
 import { useWishlistStore } from '@/store/wishlist'
 import DepositRecord from '@/components/DepositRecord.vue'
 
@@ -266,13 +267,12 @@ const handleAbandon = () => {
   })
 }
 
-onMounted(() => {
-  console.log('🟢🟢🟢 onMounted 被调用 🟢🟢🟢')
+onLoad((options) => {
+  console.log('🟢🟢🟢 onLoad 被调用 🟢🟢🟢')
+  console.log('🟢 options:', options)
   console.log('🟢 当前时间:', new Date().toISOString())
 
-  const pages = getCurrentPages()
-  const currentPage = pages[pages.length - 1]
-  const id = currentPage.options?.id
+  const id = options.id
 
   console.log('🟢 获取到的 id:', id)
   console.log('🟢 当前 wishlistId:', wishlistId.value)
@@ -294,7 +294,7 @@ onMounted(() => {
     }, 1500)
   }
 
-  console.log('🟢🟢🟢 onMounted 结束 🟢🟢🟢')
+  console.log('🟢🟢🟢 onLoad 结束 🟢🟢🟢')
 })
 </script>
 
