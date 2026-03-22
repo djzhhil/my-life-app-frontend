@@ -17,8 +17,7 @@ export const useTransactionStore = defineStore('transaction', () => {
   async function fetchTransactions(startDate?: string, endDate?: string): Promise<void> {
     loading.value = true;
     try {
-      // TODO: 调用交易列表 API
-      // transactions.value = await transactionApi.listTransactions(startDate, endDate);
+      transactions.value = await transactionApi.listTransactions({ startDate, endDate });
     } catch (error) {
       console.error('获取交易列表失败:', error);
     } finally {
@@ -29,8 +28,7 @@ export const useTransactionStore = defineStore('transaction', () => {
   // 创建交易记录
   async function createTransaction(data: any): Promise<boolean> {
     try {
-      // TODO: 调用创建交易 API
-      // await transactionApi.createTransaction(data);
+      await transactionApi.createTransaction(data);
       await fetchTransactions();
       await fetchStatistics();
       return true;
@@ -43,8 +41,7 @@ export const useTransactionStore = defineStore('transaction', () => {
   // 更新交易记录
   async function updateTransaction(id: number, data: any): Promise<boolean> {
     try {
-      // TODO: 调用更新交易 API
-      // await transactionApi.updateTransaction(id, data);
+      await transactionApi.updateTransaction(id, data);
       await fetchTransactions();
       await fetchStatistics();
       return true;
@@ -57,8 +54,7 @@ export const useTransactionStore = defineStore('transaction', () => {
   // 删除交易记录
   async function deleteTransaction(id: number): Promise<boolean> {
     try {
-      // TODO: 调用删除交易 API
-      // await transactionApi.deleteTransaction(id);
+      await transactionApi.deleteTransaction(id);
       await fetchTransactions();
       await fetchStatistics();
       return true;
@@ -71,8 +67,7 @@ export const useTransactionStore = defineStore('transaction', () => {
   // 获取统计数据
   async function fetchStatistics(startDate?: string, endDate?: string): Promise<void> {
     try {
-      // TODO: 调用统计 API
-      // statistics.value = await transactionApi.getStatistics(startDate, endDate);
+      statistics.value = await transactionApi.getStatistics({ startDate, endDate });
     } catch (error) {
       console.error('获取统计数据失败:', error);
     }

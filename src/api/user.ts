@@ -14,19 +14,19 @@ import {
 // ==================== 用户注册 ====================
 
 export async function register(data: UserRegisterDTO): Promise<UserVO> {
-  return post<UserVO>('/user/register', data);
+  return post<UserVO>('/api/user/register', data);
 }
 
 // ==================== 用户登录 ====================
 
 export async function login(data: UserLoginDTO): Promise<TokenVO> {
-  return post<TokenVO>('/user/login', data);
+  return post<TokenVO>('/api/user/login', data);
 }
 
 // ==================== 获取用户信息 ====================
 
 export async function getUserInfo(): Promise<User> {
-  return get<User>('/user/info');
+  return get<User>('/api/user/info');
 }
 
 export const userApi = {

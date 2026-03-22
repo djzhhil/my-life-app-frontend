@@ -1,123 +1,176 @@
-/**
- * 心愿单状态管理
- */
-
-import { defineStore } from 'pinia';
-import { ref } from 'vue';
-import * as wishlistApi from '@/api/wishlist';
-import { WishlistVO, WishlistDeposit } from '@/types/api';
+import { defineStore } from 'pinia'
+import { ref, computed } from 'vue'
+import * as api from '@/api/wishlist'
+import type { Wishlist, WishlistCreateDTO, Deposit, DepositDTO } from '@/api/wishlist'
 
 export const useWishlistStore = defineStore('wishlist', () => {
   // 状态
-  const wishlists = ref<WishlistVO[]>([]);
-  const loading = ref(false);
+  const wishlists = ref<Wishlist[]>([])
+  const deposits = ref<Deposit[]>([])
+  const currentWishlistId = ref<number | null>(null)
+  const loading = ref(false)
 
-  // 获取心愿列表
-  async function fetchWishlists(status?: number): Promise<void> {
-    loading.value = true;
+  // 计算属性
+  const activeWishlists = computed(() => wishlists.value.filter(w => w.status === 0) )
+  const completedWishlists = computed(() => wishlists.value.filter(w => w.status === 1) )
+  const abandonedWishlists = computed(() => wishlists.value.filter(w => w.status === 2) )
+  const currentWishlist = computed(() => wishlists.value.find(w => w.id === currentWishlistId.value) )
+  const highPriorityWishlists = computed(() => wishlists.value.filter(w => w.priority === 1) )
+  const mediumPriorityWishlists = computed(() => wishlists.value.filter(w => w.priority === 2) )
+  const lowPriorityWishlists = computed(() => wishlists.value.filter(w => w.priority === 3) )
+
+  // Actions
+  async function fetchWishlists(params?: { status?: number; priority?: number }) {
+    loading.value = true
     try {
-      // TODO: 调用心愿列表 API
-      // wishlists.value = await wishlistApi.listWishlists(status);
+      const data = await api.listWishlists(params)
+      wishlists.value = data
+      return data
     } catch (error) {
-      console.error('获取心愿列表失败:', error);
+      console.error('获取心愿列表失败:', error)
+      throw error
     } finally {
-      loading.value = false;
+      loading.value = false
     }
   }
 
-  // 创建心愿
-  async function createWishlist(data: any): Promise<boolean> {
+  async function createWishlist(data: WishlistCreateDTO) {
+    loading.value = true
     try {
-      // TODO: 调用创建心愿 API
-      // await wishlistApi.createWishlist(data);
-      await fetchWishlists();
-      return true;
+      const wishlist = await api.createWishlist(data)
+      wishlists.value.push(wishlist)
+      return wishlist
     } catch (error) {
-      console.error('创建心愿失败:', error);
-      return false;
+      console.error('创建心愿失败:', error)
+      throw error
+    } finally {
+      loading.value = false
     }
   }
 
-  // 更新心愿
-  async function updateWishlist(id: number, data: any): Promise<boolean> {
+  async function updateWishlist(id: number, data: WishlistCreateDTO) {
+    loading.value = true
     try {
-      // TODO: 调用更新心愿 API
-      // await wishlistApi.updateWishlist(id, data);
-      await fetchWishlists();
-      return true;
+      const wishlist = await api.updateWishlist(id, data)
+      const index = wishlists.value.findIndex(w => w.id === id)
+      if (index !== -1) {
+        wishlists.value[index] = wishlist
+      }
+      return wishlist
     } catch (error) {
-      console.error('更新心愿失败:', error);
-      return false;
+      console.error('更新心愿失败:', error)
+      throw error
+    } finally {
+      loading.value = false
     }
   }
 
-  // 删除心愿
-  async function deleteWishlist(id: number): Promise<boolean> {
+  async function deleteWishlist(id: number) {
+    loading.value = true
     try {
-      // TODO: 调用删除心愿 API
-      // await wishlistApi.deleteWishlist(id);
-      await fetchWishlists();
-      return true;
+      await api.deleteWishlist(id)
+      const index = wishlists.value.findIndex(w => w.id === id)
+      if (index !== -1) {
+        wishlists.value.splice(index, 1)
+      }
     } catch (error) {
-      console.error('删除心愿失败:', error);
-      return false;
+      console.error('删除心愿失败:', error)
+      throw error
+    } finally {
+      loading.value = false
     }
   }
 
-  // 完成心愿
-  async function completeWishlist(id: number): Promise<boolean> {
+  async function completeWishlist(id: number) {
+    loading.value = true
     try {
-      // TODO: 调用完成心愿 API
-      // await wishlistApi.completeWishlist(id);
-      await fetchWishlists();
-      return true;
+      await api.completeWishlist(id)
+      const wishlist = wishlists.value.find(w => w.id === id)
+      if (wishlist) {
+        wishlist.status = 1
+        wishlist.completedAt = new Date().toISOString()
+      }
     } catch (error) {
-      console.error('完成心愿失败:', error);
-      return false;
+      console.error('完成心愿失败:', error)
+      throw error
+    } finally {
+      loading.value = false
     }
   }
 
-  // 放弃心愿
-  async function abandonWishlist(id: number): Promise<boolean> {
+  async function abandonWishlist(id: number) {
+    loading.value = true
     try {
-      // TODO: 调用放弃心愿 API
-      // await wishlistApi.abandonWishlist(id);
-      await fetchWishlists();
-      return true;
+      await api.abandonWishlist(id)
+      const wishlist = wishlists.value.find(w => w.id === id)
+      if (wishlist) {
+        wishlist.status = 2
+      }
     } catch (error) {
-      console.error('放弃心愿失败:', error);
-      return false;
+      console.error('放弃心愿失败:', error)
+      throw error
+    } finally {
+      loading.value = false
     }
   }
 
-  // 获取存钱记录
-  async function fetchDeposits(wishlistId: number): Promise<WishlistDeposit[]> {
+  async function fetchDeposits(wishlistId: number) {
+    loading.value = true
     try {
-      // TODO: 调用获取存钱记录 API
-      // return await wishlistApi.getDeposits(wishlistId);
-      return [];
+      const data = await api.getDeposits(wishlistId)
+      deposits.value = data
+      return data
     } catch (error) {
-      console.error('获取存钱记录失败:', error);
-      return [];
+      console.error('获取存钱记录失败:', error)
+      throw error
+    } finally {
+      loading.value = false
     }
   }
 
-  // 存入金币
-  async function deposit(data: any): Promise<boolean> {
+  async function makeDeposit(data: DepositDTO) {
+    loading.value = true
     try {
-      // TODO: 调用存入金币 API
-      // await wishlistApi.deposit(data);
-      await fetchWishlists();
-      return true;
+      await api.deposit(data)
+      const wishlist = wishlists.value.find(w => w.id === data.wishlistId)
+      if (wishlist) {
+        wishlist.currentAmount += data.amount
+      }
+      // 刷新存钱记录
+      if (currentWishlistId.value === data.wishlistId) {
+        await fetchDeposits(data.wishlistId)
+      }
     } catch (error) {
-      console.error('存入金币失败:', error);
-      return false;
+      console.error('存入金币失败:', error)
+      throw error
+    } finally {
+      loading.value = false
     }
+  }
+
+  function setCurrentWishlistId(id: number | null) {
+    currentWishlistId.value = id
+  }
+
+  function clearDeposits() {
+    deposits.value = []
   }
 
   return {
+    // 状态
     wishlists,
+    deposits,
+    currentWishlistId,
     loading,
+    // 计算属性
+    activeWishlists,
+    completedWishlists,
+    abandonedWishlists,
+    currentWishlist,
+    highPriorityWishlists,
+    mediumPriorityWishlists,
+    lowPriorityWishlists,
+    // Actions
     fetchWishlists,
     createWishlist,
     updateWishlist,
@@ -125,6 +178,8 @@ export const useWishlistStore = defineStore('wishlist', () => {
     completeWishlist,
     abandonWishlist,
     fetchDeposits,
-    deposit,
-  };
-});
+    makeDeposit,
+    setCurrentWishlistId,
+    clearDeposits
+  }
+})
