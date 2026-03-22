@@ -114,9 +114,11 @@
 import { ref, computed, onMounted } from 'vue';
 import { useTransactionStore } from '@/store/transaction';
 import { useCategoryStore } from '@/store/category';
+import { useUserStore } from '@/store/user';
 
 const transactionStore = useTransactionStore();
 const categoryStore = useCategoryStore();
+const userStore = useUserStore();
 
 // 账户类型
 const accountTypes = [
@@ -294,6 +296,18 @@ async function handleSave() {
 
 // 初始化
 onMounted(async () => {
+  // 检查登录状态
+  if (!userStore.isLoggedIn()) {
+    uni.showToast({
+      title: '请先登录',
+      icon: 'none',
+    });
+    setTimeout(() => {
+      uni.redirectTo({ url: '/pages/login/login' });
+    }, 1500);
+    return;
+  }
+
   // 设置默认日期为今天
   const today = new Date();
   const year = today.getFullYear();
@@ -302,12 +316,20 @@ onMounted(async () => {
   form.value.date = `${year}-${month}-${day}`;
 
   // 获取分类列表
-  await categoryStore.fetchCategories();
+  try {
+    await categoryStore.fetchCategories();
 
-  // 设置默认分类（支出类型的第一个）
-  const firstExpense = categoryStore.expenseCategories[0];
-  if (firstExpense) {
-    form.value.categoryId = firstExpense.id;
+    // 设置默认分类（支出类型的第一个）
+    const firstExpense = categoryStore.expenseCategories[0];
+    if (firstExpense) {
+      form.value.categoryId = firstExpense.id;
+    }
+  } catch (error) {
+    console.error('获取分类失败:', error);
+    uni.showToast({
+      title: '获取分类失败',
+      icon: 'none',
+    });
   }
 
   // 检查是否为编辑模式

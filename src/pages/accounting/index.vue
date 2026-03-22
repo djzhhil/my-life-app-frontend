@@ -99,10 +99,12 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onShow } from 'vue';
 import { useTransactionStore } from '@/store/transaction';
+import { useUserStore } from '@/store/user';
 import StatCard from '@/components/StatCard.vue';
 import type { TransactionVO } from '@/types/api';
 
 const transactionStore = useTransactionStore();
+const userStore = useUserStore();
 
 // 统计数据
 const statistics = computed(() => transactionStore.statistics);
@@ -225,6 +227,18 @@ function handleAdd() {
 // 加载数据
 async function loadData() {
   try {
+    // 检查登录状态
+    if (!userStore.isLoggedIn()) {
+      uni.showToast({
+        title: '请先登录',
+        icon: 'none',
+      });
+      setTimeout(() => {
+        uni.redirectTo({ url: '/pages/login/login' });
+      }, 1500);
+      return;
+    }
+    
     await transactionStore.fetchTransactions();
     await transactionStore.fetchStatistics();
   } catch (error) {
