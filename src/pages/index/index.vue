@@ -149,6 +149,8 @@ function handleStatusClick(status: number | null) {
 async function handleComplete(id: number) {
   const success = await taskStore.completeTask(id);
   if (success) {
+    // 刷新用户信息（显示最新的经验值和金币）
+    await userStore.fetchUserInfo();
     uni.showToast({ title: '任务完成！', icon: 'success' });
   } else {
     uni.showToast({ title: '操作失败', icon: 'none' });
