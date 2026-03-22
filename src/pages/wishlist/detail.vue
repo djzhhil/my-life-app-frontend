@@ -122,25 +122,59 @@ const fetchData = async () => {
 }
 
 const handleDeposit = () => {
+  // 使用 uni.showModal 配合临时输入框的方式
+  // 因为 editable 属性在某些平台可能不支持
+  let inputValue = ''
+
   uni.showModal({
     title: '存入金币',
     editable: true,
     placeholderText: '请输入存入金额',
     success: async (res) => {
-      if (res.confirm && res.content) {
-        const amount = parseFloat(res.content)
+      if (res.confirm) {
+        // 某些平台下 res.content 可能不正确，尝试多种方式获取输入值
+        const content = res.content || res.tap?.content || res.edit?.content || ''
+
+        console.log('💰 用户输入:', content)
+        console.log('💰 完整 res:', res)
+
+        const amount = parseFloat(content)
+
+        console.log('💰 解析后的金额:', amount)
+
         if (isNaN(amount) || amount <= 0) {
+          console.warn('💰 金额无效:', amount,isNaN(amount), amount <= 0)
           uni.showToast({ title: '请输入有效金额', icon: 'none' })
           return
         }
+
+        if (!wishlistId.value) {
+          console.error('💰 wishlistId 为空')
+          uni.showToast({ title: '数据异常', icon: 'none' })
+          return
+        }
+
+        console.log('💰 准备调用 store.makeDeposit:', { wishlistId: wishlistId.value, amount })
+
         try {
-          await store.makeDeposit({ wishlistId: wishlistId.value!, amount })
+          await store.makeDeposit({ wishlistId: wishlistId.value, amount })
+
+          console.log('💰 makeDeposit 执行成功')
+
           uni.showToast({ title: '存入成功', icon: 'success' })
+
           await fetchData()
         } catch (error) {
-          uni.showToast({ title: '存入失败', icon: 'none' })
+          console.error('💰💰💰 存入失败 💰💰💰')
+          console.error('错误:', error)
+          console.error('错误信息:', error?.message || '未知错误')
+          uni.showToast({ title: '存入失败: ' + (error?.message || '未知错误'), icon: 'none' })
         }
       }
+    },
+    fail: (err) => {
+      console.error('💰 Modal 调用失败:', err)
+      uni.showToast({ title: '弹窗失败', icon: 'none' })
     }
   })
 }

@@ -150,26 +150,55 @@ export const useWishlistStore = defineStore('wishlist', () => {
   }
 
   async function makeDeposit(data: DepositDTO) {
+    console.log('🔵🔵🔵 makeDeposit 被调用 🔵🔵🔵')
+    console.log('🔵 参数:', JSON.stringify(data))
+
     loading.value = true
+
     try {
+      console.log('🔵 开始调用 api.deposit')
+
       await api.deposit(data)
+
+      console.log('🔵 api.deposit 执行成功')
+
       const wishlist = wishlists.value.find(w => w.id === data.wishlistId)
+      console.log('🔵 找到的心愿:', wishlist)
+
       if (wishlist) {
-        // 确保类型是数字
+        console.log('🔵 更改前 - currentAmount:', wishlist.currentAmount, '类型:', typeof wishlist.currentAmount)
+
         const current = typeof wishlist.currentAmount === 'string'
           ? parseFloat(wishlist.currentAmount)
           : (wishlist.currentAmount || 0)
+
+        console.log('🔵 解析后的当前金额:', current, '存入金额:', data.amount)
+
         wishlist.currentAmount = current + data.amount
+
+        console.log('🔵 更改后 - currentAmount:', wishlist.currentAmount)
+      } else {
+        console.error('🔵 未找到心愿，wishlistId:', data.wishlistId)
       }
+
       // 刷新存钱记录
       if (currentWishlistId.value === data.wishlistId) {
+        console.log('🔵 刷新存钱记录，wishlistId:', data.wishlistId)
         await fetchDeposits(data.wishlistId)
+        console.log('🔵 存钱记录刷新完成')
       }
+
     } catch (error) {
-      console.error('存入金币失败:', error)
+      console.error('🔴🔴🔴 makeDeposit 抛出异常 🔴🔴🔴')
+      console.error('错误类型:', typeof error)
+      console.error('错误信息:', error)
+      console.error('错误消息:', error?.message)
+      console.error('错误堆栈:', error?.stack || '无堆栈信息')
+
       throw error
     } finally {
       loading.value = false
+      console.log('🔵 makeDeposit 结束，loading: false')
     }
   }
 
